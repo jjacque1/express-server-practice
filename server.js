@@ -19,11 +19,11 @@ app.get("/api/tasks", (req, res) => {
 });
 
 app.post("/api/tasks", (req, res) => {
-  const { title, description, status } = req.body;
-
   if (!req.body || typeof req.body !== "object") {
     return res.status(400).json({ message: "Invalid or missing JSON body" });
   }
+
+  const { title, description, status } = req.body;
 
   const trimmedTitle = (title || "").trim();
   const trimmedDescription = (description || "").trim();
@@ -62,11 +62,11 @@ app.put("/api/tasks/:id", (req, res) => {
     return res.status(404).json({ message: "Task not found" });
   }
 
-  const { title, description, status } = req.body;
-
   if (!req.body || typeof req.body !== "object") {
     return res.status(400).json({ message: "Invalid or missing JSON body" });
   }
+
+  const { title, description, status } = req.body;
 
   const trimmedTitle = (title || "").trim();
   const trimmedDescription = (description || "").trim();
@@ -98,11 +98,11 @@ app.patch("/api/tasks/:id", (req, res) => {
     return res.status(404).json({ message: "Task not found" });
   }
 
-  const { title, description, status } = req.body;
-
   if (!req.body || typeof req.body !== "object") {
     return res.status(400).json({ message: "Invalid or messing JSON body" });
   }
+
+  const { title, description, status } = req.body;
 
   if (title !== undefined) {
     const trimmedTitle = (title || "").trim();
@@ -147,6 +147,13 @@ app.delete("/api/tasks/:id", (req, res) => {
 
   return res.status(204).send();
 });
+
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    return res.status(500).json({
+        message: "Internal Server Error"
+    })
+})
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
