@@ -4,14 +4,14 @@ const express = require("express");
 const app = express();
 
 const cors = require("cors");
-
 app.use(cors());
+
 app.use(express.json());
 
 let tasks = [];
 
 app.get("/health", (req, res) => {
-  res.json({ message: "server is alive" });
+  res.json({ status: "ok" });
 });
 
 app.get("/api/tasks", (req, res) => {
@@ -22,7 +22,7 @@ app.post("/api/tasks", (req, res) => {
   const { title, description, status } = req.body;
 
   if (!req.body || typeof req.body !== "object") {
-    return res.status(400).json({ message: "Invalid or Missing JSON body" });
+    return res.status(400).json({ message: "Invalid or missing JSON body" });
   }
 
   const trimmedTitle = (title || "").trim();
@@ -31,7 +31,7 @@ app.post("/api/tasks", (req, res) => {
   if (!trimmedTitle || !trimmedDescription) {
     return res
       .status(400)
-      .json({ message: "title and description are required" });
+      .json({ message: "Title and Description are required" });
   }
 
   const allowedStatuses = ["pending", "in-progress", "done"];
@@ -41,27 +41,61 @@ app.post("/api/tasks", (req, res) => {
     return res.status(400).json({ message: "Invalid status" });
   }
 
-  const newTasks = {
+  const newTask = {
     id: String(Date.now()),
     title: trimmedTitle,
     description: trimmedDescription,
     status: finalStatus,
   };
 
-  tasks.push(newTasks);
+  tasks.push(newTask);
 
-  return res.status(201).json(newTasks);
+  return res.status(201).json(newTask);
 });
 
-//PUT ROUTE
+app.put("/api/tasks/:id", (req, res) => {
+  const { id } = req.params;
+
+  const task = tasks.find((task) => task.id === id);
+
+  if (!task) {
+    return res.status(404).json({ message: "Task not found" });
+  }
+
+  const { title, description, status } = req.body;
+
+  if (!req.body || typeof req.body !== "object") {
+    return res.status(400).json({ message: "Invalid or missing JSON body" });
+  }
+
+  const trimmedTitle = (title || "").trim();
+  const trimmedDescription = (description || "").trim();
+  const allowedStatuses = ["pending", "in-progress", "done"];
+
+  if (
+    !trimmedDescription ||
+    !trimmedTitle ||
+    !allowedStatuses.includes(status)
+  ) {
+    return res
+      .status(400)
+      .json({ message: "Title, Description, and Status are required" });
+  }
+
+  task.title = trimmedTitle;
+  task.description = trimmedDescription;
+  task.status = status;
+
+  return res.json(task);
+});
 
 app.patch("/api/tasks/:id", (req, res) => {
   const { id } = req.params;
 
-  const task = tasks.find((t) => t.id === id);
+  const task = tasks.find((task) => task.id === id);
 
   if (!task) {
-    return res.status(404).json({ message: "task not found" });
+    return res.status(404).json({ message: "Task not found" });
   }
 
   const { title, description, status } = req.body;
@@ -71,7 +105,7 @@ app.patch("/api/tasks/:id", (req, res) => {
   }
 
   if (title !== undefined) {
-    const trimmedTitle = String(title).trim();
+    const trimmedTitle = (title || "").trim();
     if (!trimmedTitle) {
       return res.status(400).json({ message: "Title is required" });
     }
@@ -80,7 +114,7 @@ app.patch("/api/tasks/:id", (req, res) => {
   }
 
   if (description !== undefined) {
-    const trimmedDescription = String(description).trim();
+    const trimmedDescription = (description || "").trim();
     if (!trimmedDescription) {
       return res.status(400).json({ message: "Description is required" });
     }
@@ -101,18 +135,18 @@ app.patch("/api/tasks/:id", (req, res) => {
 });
 
 app.delete("/api/tasks/:id", (req, res) => {
-    const { id } = req.params
+  const { id } = req.params;
 
-    const initialLength = tasks.length;
+  const initialLength = tasks.length;
 
-    tasks =  tasks.filter(task => task.id !== id)
+  tasks = tasks.filter((task) => task.id !== id);
 
-    if(tasks.length === initialLength){
-        return res.status(404).json({message: "Task not found"})
-    }
+  if (tasks.length === initialLength) {
+    return res.status(404).json({ message: "Task not found" });
+  }
 
-    return res.status(204).send()
-})
+  return res.status(204).send();
+});
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
